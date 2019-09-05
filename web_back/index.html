@@ -120,20 +120,27 @@
             });
         });
 
+        $(function () {
+            loadUserInfo();
+        })
         //2.业务目标：登录成功跳转到 index.html 页面后，需要 异步 将 登录用户的 信息 获取到，并设置到 index.html 页面对应的位置
         //a.页面加载完毕后，发送 异步请求
-        $.ajax({
-            url: 'http://127.0.0.1:8080/admin/user/info',
-            method: 'get',
-            success: function (backData) {
-                if (backData.code == 200) {
-                    //1.设置图片
-                    $('.user_info img').attr('src', backData.data.userPic);
-                    //2.设置欢迎语
-                    $('.user_info span').html('欢迎&nbsp;&nbsp;- ' + backData.data.nickname);
+        function loadUserInfo() {
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/user/info',
+                method: 'get',
+                success: function (backData) {
+                    if (backData.code == 200) {
+                        //1.设置图片
+                        $('.user_info img').attr('src', backData.data.userPic);
+                        $('.user_center_link img').attr('src', backData.data.userPic);
+                        //2.设置欢迎语
+                        $('.user_info span').html('欢迎&nbsp;&nbsp;- ' + backData.data.nickname);
+                    }
                 }
-            }
-        });
+            });
+        }
+
     </script>
 </body>
 
