@@ -141,23 +141,24 @@
         })
 
         //删除分类
-        $('tbody').on('click','.btn-danger',function () {
-            var btnID=$(this).attr('data-id');
-            var $btnDelete=$(this);
+        $('tbody').on('click', '.model_add', function () {
+            var btnID = $(this).attr('data-id');
+            var $btnDelete = $(this);
             $.ajax({
-                url:'http://127.0.0.1:8080/admin/category/delete',
-                method:'post',
-                data:{
-                    id:btnID
+                url: 'http://127.0.0.1:8080/admin/category/delete',
+                method: 'post',
+                data: {
+                    id: btnID
                 },
-                success:function(backData){
+                success: function (backData) {
                     console.log(backData);
-                    if(backData.code==204){
+                    if (backData.code == 204) {
                         $btnDelete.parents('tr').remove();
                     }
                 }
             })
         })
+
 
 
     </script>
