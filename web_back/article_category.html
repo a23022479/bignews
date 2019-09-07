@@ -35,7 +35,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="#" class="btn btn-success" data-toggle="modal" data-target="#addModal">新增分类</a>
+                            <a id="btnadd" href="#" class="btn btn-success" data-toggle="modal" data-target="#addModal">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
@@ -52,6 +52,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="f1">
+                        <input type="hidden" name="id" id='txtID'>
                         <div class="form-group">
                             <label for="recipient-name" class="control-label">分类名称:</label>
                             <input type="text" class="form-control" id="txtName" name="name">
@@ -64,7 +65,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" id="model_shutoff">关闭</button>
-                    <button type="button" class="btn btn-primary" id="model_add">新增</button>
+                    <button type="button" class="btn btn-primary" id="model_add">确定</button>
                 </div>
             </div>
         </div>
@@ -86,12 +87,12 @@
             $('#addModal').modal('hide');
         });
 
-        $('.category_table').delegate('a', 'click', function () {
-            if ($(this).hasClass('btn-info')) {
-                $('#addModal .modal-title').html('修改分类名称');
-                $('#addModal').modal('show');
-            }
-        })      
+        // $('.category_table').delegate('a', 'click', function () {
+        //     if ($(this).hasClass('btn-info')) {
+        //         $('#addModal .modal-title').html('修改分类名称');
+        //         $('#addModal').modal('show');
+        //     }
+        // })      
     </script>
     <!-- 模板 -->
     <script id="cateTr" type="text/html">
@@ -100,7 +101,7 @@
             <td>{{a.name}}</td>
             <td>{{a.slug}}</td>
             <td class="text-center">
-                <a href="javascript:void(0);" class="btn btn-info btn-xs">编辑</a>
+                <a href="javascript:void(0);" data-id="{{a.id}}" class="btn btn-info btn-xs">编辑</a>
                 <a href="javascript:void(0);" data-id="{{a.id}}" class="btn btn-danger btn-xs">删除</a>
             </td>
         </tr>
@@ -125,41 +126,90 @@
 
         // 新增类别
         $('#model_add').click(function () {
-            var strList = $('#f1').serialize();//获取表单数据
-            $.ajax({
-                url: 'http://127.0.0.1:8080/admin/category/add',
-                method: 'post',
-                data: strList,
-                success: function (backData) {
-                    if (backData.code == 201) {
-                        loadList();//重新加载
-                        $('#addModal').modal('hide');//隐藏模态框
-                        document.getElementById('f1').reset();//清空表单数据
+
+            if ($(this).has('add')) {
+                var strList = $('#f1').serialize();//获取表单数据
+                $.ajax({
+                    url: 'http://127.0.0.1:8080/admin/category/add',
+                    method: 'post',
+                    data: strList,
+                    success: function (backData) {
+                        if (backData.code == 201) {
+                            loadList();//重新加载
+                            $('#addModal').modal('hide');//隐藏模态框
+                            document.getElementById('f1').reset();//清空表单数据
+                        }
                     }
-                }
-            })
+                })
+            }
+            else {
+                var dataList = $('#f1').serialize();
+                $.ajax({
+                    url: 'http://127.0.0.1:8080/admin/category/edit',
+                    method: 'post',
+                    data: dataList,
+                    success: function (backData) {
+                        console.log(backData);
+                        if (backData.code == 200) {
+                            $('#addModal').modal('hide');
+                            loadList();
+                        }
+                    }
+
+                })
+            }
         })
 
         //删除分类
-        $('tbody').on('click', '.model_add', function () {
-            var btnID = $(this).attr('data-id');
-            var $btnDelete = $(this);
-            $.ajax({
-                url: 'http://127.0.0.1:8080/admin/category/delete',
-                method: 'post',
-                data: {
-                    id: btnID
-                },
-                success: function (backData) {
-                    console.log(backData);
-                    if (backData.code == 204) {
-                        $btnDelete.parents('tr').remove();
+        $('tbody').on('click', '.btn-danger', function () {
+            if (confirm('确定删除?')) {
+                var btnID = $(this).attr('data-id');
+                var $btnDelete = $(this);
+                $.ajax({
+                    url: 'http://127.0.0.1:8080/admin/category/delete',
+                    method: 'post',
+                    data: {
+                        id: btnID
+                    },
+                    success: function (backData) {
+                        console.log(backData);
+                        if (backData.code == 204) {
+                            $btnDelete.parents('tr').remove();
+                        }
                     }
-                }
-            })
+                })
+            }
         })
 
 
+
+        //编辑分类
+        $('tbody').on('click', '.btn-info', function () {
+            //显示模态框
+            $('#addModal').modal('show');
+            // 修改标题
+            $('.modal-title').text('修改分类');
+            // 删除类名
+            $('#model_add').removeClass('add');
+            // 获取数据显示在表单
+            var fristStr = $(this).parents('tr').children('td:eq(0)');
+            var secondStr = $(this).parents('tr').children('td:eq(1)');
+            $('#txtName').val(fristStr.text());
+            $('#txtSlug').val(secondStr.text());
+            // 隐藏框id
+            $('#txtID').val($(this).attr('data-id'));
+        })
+
+        //新增分类按钮
+        $('#btnadd').click(function () {
+            // 修改标题
+            $('.modal-title').text('新增分类');
+            // 添加类名
+            $('#model_add').addClass('add');
+            // 清空表格
+            $('#txtName').val('');
+            $('#txtSlug').val('');
+        })
 
     </script>
 </body>
