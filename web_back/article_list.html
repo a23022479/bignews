@@ -148,20 +148,20 @@
         $(function () {
             loadArtCateList();
             loadArtList(1);
-            
+
         })
-        
+
         // 获取分类文章列表
-        function loadArtList(pageIndex=1,type = '', state = '',pageSize=10) {
+        function loadArtList(pageIndex = 1, pageSize = 10) {
             // 4个参数    分别为    页码     文章分类    发布状态    页容量
             $.ajax({
                 url: 'http://127.0.0.1:8080/admin/article/query',
                 method: 'get',
                 data: {
-                    perpage:pageSize,
-                    type:type,
-                    state:state,
-                    page:pageIndex
+                    perpage: pageSize,
+                    type: seleCate,
+                    state: seleState,
+                    page: pageIndex
                 },
                 success: function (backData) {
                     console.log(backData);
@@ -169,7 +169,7 @@
                         var htmlStr = template('article', backData);
                         $('#tbodyArt').html(htmlStr);
 
-                         makePageBar(loadArtList, 'pageDiv', pageIndex, pageSize, 8, backData.data.totalCount);
+                        makePageBar(loadArtList, 'pageDiv', pageIndex, pageSize, 8, backData.data.totalCount);
                     }
                 }
             })
@@ -188,15 +188,18 @@
                 }
             })
         }
-
+        // 筛选按钮点击事件
+        var seleCate='';
+        var seleState='';
         $('#btnSearch').click(function () {
-            var seleCate = $('#selCategory').val();
-            var seleState = $('#selStatus').val();
+            seleCate = $('#selCategory').val();
+            seleState = $('#selStatus').val();
             console.log(seleCate, seleState);
 
-            loadArtList(1,seleCate, seleState);
+            // 点击后调用文章分类列表函数    重新加载列表
+            loadArtList(1);
         })
-        
+
         // 设置左侧菜单
         $('#release_btn').click(function () {
             window.parent.setMenu(1, 1);

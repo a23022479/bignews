@@ -23,28 +23,25 @@
             写文章
         </div>
         <div class="container-fluid common_con">
-            <form class="form-horizontal article_form">
+            <form id="f1" class="form-horizontal article_form">
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章标题：</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="文章标题">
+                        <input type="text" class="form-control" name="title" id="inputEmail3" placeholder="文章标题">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
-                        <input type="file" id="exampleInputFile">
+                        <img id="imgPrev" src="./images/2.jpg" style="height: 188px;" />
+                        <input type="file" id="upFile" name="cover">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章类别：</label>
                     <div class="col-sm-4">
-                        <select class="form-control">
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
+                        <select class="form-control" name="categoryId" id="seleCate">
+                            
                         </select>
                     </div>
                 </div>
@@ -53,10 +50,9 @@
                     <div class="col-sm-4">
 
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="dateinput">
+                            <input type="text" class="form-control" name="date" placeholder="YYYY-MM-DD" id="dateinput">
                             <span class="input-group-btn">
-                                <button class="btn btn-default" type="button"
-                                    onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
+                                <button class="btn btn-default" type="button" onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
                                         class="iconfont icon-icondate"></i></button>
                             </span>
                         </div>
@@ -65,21 +61,110 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
-                        <textarea class="form-control" id="rich_content" name="content" placeholder="文章内容">
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Assumenda fugiat illo nihil molestias ab. Laborum eius non atque, totam sapiente quae obcaecati assumenda ratione inventore pariatur maiores, qui libero delectus.
+                        <textarea class="form-control" id="rich_content"  placeholder="文章内容">
                             </textarea>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success">发布</button>
-                        <button type="submit" class="btn btn-default">存为草稿</button>
+                        <input type="button" id="btnPublish" value="发布" class="btn btn-success">
+                        <input type="button" id="btnSave" value="存为草稿" class="btn btn-default">
                     </div>
                 </div>
             </form>
         </div>
     </div>
+    
+   
+    <script>
+        $(function () {
+            //  图片预览
+            $('#upFile').change(function () {
+                var file = this.files[0];
+                var url = URL.createObjectURL(file);
+                $('#imgPrev').attr('src', url);
+            })
+            // 调用方法生成  分类下拉框列表
+            loadOption();
+        })
+        // 加载 分类列表 下拉框
+        function loadOption() {
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/category/list',
+                method: 'get',
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
 
+                        // 获取成功,生成option 
+                        // 文档片段对象,暂时存储option
+                        var frag = document.createDocumentFragment();
+
+                        // 获取分类  的数组 ,生成对应个数的option
+                        for (var i = 0; i < backData.data.length; i++) {
+                            var opDom = document.createElement('option');
+                            // 取出数组 中元素(对象)的id赋值给option value
+                            opDom.value = backData.data[i].id;
+                            // 取出数组 中元素(对象)的name赋值给option text
+                            opDom.innerText = backData.data[i].name;
+
+                            frag.appendChild(opDom);//将生成并赋值好的option存储
+                        }
+
+                        $('#seleCate').append(frag);//最后添加到select
+                    }
+                }
+            })
+        }
+
+        $('#btnPublish').click(function () {
+            var fd = new FormData($('#f1')[0]);
+            console.log(fd);
+            fd.append('state', '已发布');
+
+            // 获取富文本编辑器的内容
+            var contentStr = tinyMCE.activeEditor.getContent();
+            fd.append('content', contentStr);
+
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/article/publish',
+                method: 'post',
+                data: fd,
+                contentType: false,
+                processData: false,
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        alert('新增成功!');
+                        window.location = './article_list.html';
+                    }
+                }
+            })
+        })
+
+        $('#btnSave').click(function () {
+            var fd = new FormData($('#f1')[0]);
+            
+            fd.append('state', '草稿');
+            var contentStr = tinyMCE.activeEditor.getContent();
+            fd.append('content', contentStr);
+
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/article/publish',
+                method: 'post',
+                data: fd,
+                contentType: false,
+                processData: false,
+                success: function (backData) {
+                    if (backData.code == 200) {
+                        alert('保存为草稿成功啦~~~');
+                        window.location = './article_list.html';
+                    }
+                }
+            });
+        });
+    </script>
 </body>
+
 
 </html>
