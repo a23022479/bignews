@@ -15,6 +15,7 @@
     <script src="js/jedate/js/jedate.js"></script>
     <script src="js/tinymce/js/tinymce/tinymce.min.js"></script>
     <script src="js/tinymce/js/tinymce_setup.js"></script>
+    <script src="js/template-web.js"></script>
 </head>
 
 <body>
@@ -23,30 +24,25 @@
             文章编辑
         </div>
         <div class="container-fluid common_con">
-            <form class="form-horizontal article_form">
+            <form id="f1" class="form-horizontal article_form">
+                <input type="hidden" id='hidId' name="id">
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章标题：</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" value="文章标题文字">
+                        <input type="text" class="form-control" name='title' id="txtTitle" value="文章标题文字">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
-                        <img src="images/pic06.jpg" class="article_cover">
-                        <input type="file" id="exampleInputFile">
+                        <img src="images/pic06.jpg" class="article_cover" id="imgCover">
+                        <input type="file" name='cover' id="exampleInputFile">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章类别：</label>
                     <div class="col-sm-4">
-                        <select class="form-control">
-                            <option>类别一</option>
-                            <option>类别二</option>
-                            <option>类别三</option>
-                            <option selected>类别四</option>
-                            <option>类别五</option>
-                        </select>
+                        <select id="selCate" name='categoryId' class="form-control"></select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -54,10 +50,9 @@
                     <div class="col-sm-4">
 
                         <div class="input-group">
-                            <input type="text" class="form-control" value="2019-05-17" id="dateinput">
+                            <input type="text" class="form-control" value="2019-05-17" id="dateinput" name='date'>
                             <span class="input-group-btn">
-                                <button class="btn btn-default" type="button"
-                                    onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
+                                <button class="btn btn-default" type="button" onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
                                         class="iconfont icon-icondate"></i></button>
                             </span>
                         </div>
@@ -66,18 +61,87 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="rich_content" name="content" placeholder="文章内容" value="文章内容">
+                        <textarea class="form-control" id="rich_content"></textarea>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success">修改</button>
+                        <button id='btnOK' type="button" class="btn btn-success">修改</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
+    <script id='optionTemplate' type="text/html">
+        <option value="">所有分类</option>
+        {{each data v}}
+           <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+        </script>
+    <script>
+        $(function () {
+            loadOption();
+            searchArtcle();
+        })
+
+        //加载编辑页面的  下拉框列表
+        function loadOption() {
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/category/list',
+                method: 'get',
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        var htmlStr = template('optionTemplate', backData);
+                        $('#selCate').html(htmlStr);
+                    }
+                }
+            })
+        }
+
+        function searchArtcle() {
+            var aid = window.location.search.split('=')[1];//获取id
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/article/search',
+                method: 'get',
+                data: 'id=' + aid,
+                success: function (backData) {
+                    console.log(backData);
+
+                    // 获取文章数据  显示在编辑页面
+                    $('#hidId').val(backData.data.id);
+                    $('#txtTitle').val(backData.data.title);
+                    $('#imgCover').attr('src', backData.data.cover);
+                    $('#dateinput').val(backData.data.date);
+                    $('#selCate').val(backData.data.categoryId);
+                    $('#rich_content').val(backData.data.content);
+                }
+            })
+        }
+
+        $('#btnOK').click(function () {
+            var fd = new FormData($('#f1')[0]);
+            //获取富文本编辑器内容
+            var contentStr = tinyMCE.activeEditor.getContent();
+            fd.append('content', contentStr);
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/article/edit',
+                method: 'post',
+                data: fd,
+                contentType: false,
+                processData: false,
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        alert('修改成功啦~~~');
+                        window.location = './article_list.html';
+                    }
+                }
+            });
+        })
+
+    </script>
 </body>
 
 </html>
