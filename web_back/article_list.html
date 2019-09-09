@@ -153,7 +153,7 @@
 
         // 获取分类文章列表
         function loadArtList(pageIndex = 1, pageSize = 10) {
-            // 4个参数    分别为    页码     文章分类    发布状态    页容量
+            // 2个参数    分别为    页码       页容量
             $.ajax({
                 url: 'http://127.0.0.1:8080/admin/article/query',
                 method: 'get',
@@ -189,8 +189,8 @@
             })
         }
         // 筛选按钮点击事件
-        var seleCate='';
-        var seleState='';
+        var seleCate = '';
+        var seleState = '';
         $('#btnSearch').click(function () {
             seleCate = $('#selCategory').val();
             seleState = $('#selStatus').val();
@@ -198,6 +198,28 @@
 
             // 点击后调用文章分类列表函数    重新加载列表
             loadArtList(1);
+        })
+
+        $('tbody').on('click', '.btn-danger', function () {
+            if (confirm('确定删除?')) {
+                var btnID = $(this).attr('data-id');
+                var $btnDele=$(this);
+                $.ajax({
+                    url: 'http://127.0.0.1:8080/admin/article/delete',
+                    method: 'get',
+                    data: {
+                        id: btnID
+                    },
+                    success: function (backData) {
+                        console.log(backData);
+                        if(backData.code==204){
+                            alert(backData.msg);
+                            $btnDele.parents('tr').remove();    
+                        }
+                    }
+                })
+            }
+
         })
 
         // 设置左侧菜单

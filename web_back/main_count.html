@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- <!DOCTYPE html> -->
+<!-- <html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -342,6 +342,304 @@
                   }]
             };
             oColumn.setOption(oColumnopt);
+
+    </script>
+
+
+</body>
+
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>图表统计</title>
+    <link rel="stylesheet" href="js/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/iconfont.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="js/echarts.min.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row spannel_list">
+            <div class="col-sm-3 col-xs-6">
+                <div class="spannel">
+                    <em>10015</em><span>篇</span>
+                    <b>总文章数</b>
+                </div>
+            </div>
+            <div class="col-sm-3 col-xs-6">
+                <div class="spannel scolor01">
+                    <em>123</em><span>篇</span>
+                    <b>日新增文章数</b>
+                </div>
+            </div>
+            <div class="col-sm-3 col-xs-6">
+                <div class="spannel scolor02">
+                    <em>35</em><span>条</span>
+                    <b>评论总数</b>
+                </div>
+            </div>
+            <div class="col-sm-3 col-xs-6">
+                <div class="spannel scolor03">
+                    <em>123</em><span>条</span>
+                    <b>日新增评论数</b>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row curve-pie">
+            <div class="col-lg-8 col-md-8">
+                <div class="gragh_pannel" id="curve_show"></div>
+            </div>
+            <div class="col-lg-4 col-md-4">
+                <div class="gragh_pannel" id="pie_show"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="column_pannel" id="column_show"></div>
+    </div>
+
+    <script>
+        $(function () {
+            //1.请求 并 加载 折线图 图标数据
+            $.ajax({
+                url: 'http://127.0.0.1:8080/admin/data/article',
+                method: 'get',
+                cache:false,  // 浏览器 针对 get 请求 相同的 url，会产生 缓存
+                success: function (backData) {
+                    if (backData.code == 200) {
+                        // 生成 折线图
+                        makeZheXianTu(backData.date);
+                    }
+                }
+            });
+        });
+        //1. 首页 新增文章数量 折线图 -----------------------------------------------------
+        function makeZheXianTu(trueDate) {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('curve_show'));
+
+            // 准备 折线图数据 （从后台获取的数据 经过 加工 生成的 折线图数据）
+            var dataObj = getData();
+
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '月新增文章数',
+                    left: 'center',
+                    top: '10'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['新增文章'],
+                    top: '40'
+                },
+                toolbox: {
+                    show: true,
+                    feature: {
+                        mark: { show: true },
+                        dataView: { show: true, readOnly: false },
+                        magicType: { show: true, type: ['line', 'bar'] },
+                        restore: { show: true },
+                        saveAsImage: { show: true }
+                    }
+                },
+                calculable: true,
+                xAxis: [
+                    {
+                        name: '日',
+                        type: 'category',
+                        boundaryGap: false,
+                        data: dataObj.aDate // 设置 横轴 数据
+                    }
+                ],
+                yAxis: [
+                    {
+                        name: '月新增文章数',
+                        type: 'value'
+                    }
+                ],
+                series: [
+                    {
+                        name: '新增文章',
+                        type: 'line',
+                        smooth: true,
+                        itemStyle: { normal: { areaStyle: { type: 'default' }, color: '#f80' }, lineStyle: { color: '#f80' } },
+                        data: dataObj.aCount
+                    }],
+                areaStyle: {
+                    normal: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                            offset: 0,
+                            color: 'rgba(255,136,0,0.39)'
+                        }, {
+                            offset: .34,
+                            color: 'rgba(255,180,0,0.25)'
+                        }, {
+                            offset: 1,
+                            color: 'rgba(255,222,0,0.00)'
+                        }])
+
+                    }
+                },
+                grid: {
+                    show: true,
+                    x: 50,
+                    x2: 50,
+                    y: 80,
+                    height: 220
+                }
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+
+            function getData() {
+                // 模拟的 原始数据
+                var aList_all = trueDate;
+
+                // 准备 用来 给 折线图 的 两个数组
+                let aCount = [];
+                let aDate = [];
+
+                // 循环 将 日期 和 发表文章数量 分别 存入 两个 数组
+                for (var i = 0; i < aList_all.length; i++) {
+                    aCount.push(aList_all[i].count);
+                    aDate.push(aList_all[i].date);
+                }
+
+                return {
+                    aCount: aCount,
+                    aDate: aDate
+                };
+            }
+
+        }
+
+
+        //2.后面两个 图标 ------------------------------------------------------------------------
+
+        var oColumn = this.echarts.init(document.getElementById('column_show'));
+        var oColumnopt =
+        {
+            title: {
+                text: '文章访问量',
+                left: 'center',
+                top: '10'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['奇趣事', '会生活', '爱旅行', '趣美味'],
+                top: '40'
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    mark: { show: true },
+                    dataView: { show: true, readOnly: false },
+                    magicType: { show: true, type: ['line', 'bar'] },
+                    restore: { show: true },
+                    saveAsImage: { show: true }
+                }
+            },
+            calculable: true,
+            xAxis: [
+                {
+                    type: 'category',
+                    data: ['1月', '2月', '3月', '4月', '5月']
+                }
+            ],
+            yAxis: [
+                {
+                    name: '访问量',
+                    type: 'value'
+                }
+            ],
+            series: [
+                {
+                    name: '奇趣事',
+                    type: 'bar',
+                    barWidth: 20,
+                    itemStyle: {
+                        normal: { areaStyle: { type: 'default' }, color: '#fd956a' }
+                    },
+                    data: [800, 708, 920, 1090, 1200]
+                },
+                {
+                    name: '会生活',
+                    type: 'bar',
+                    barWidth: 20,
+                    itemStyle: {
+                        normal: { areaStyle: { type: 'default' }, color: '#2bb6db' }
+                    },
+                    data: [400, 468, 520, 690, 800]
+                },
+                {
+                    name: '爱旅行',
+                    type: 'bar',
+                    barWidth: 20,
+                    itemStyle: {
+                        normal: { areaStyle: { type: 'default' }, color: '#13cfd5' }
+                    },
+                    data: [500, 668, 520, 790, 900]
+                },
+                {
+                    name: '趣美味',
+                    type: 'bar',
+                    barWidth: 20,
+                    itemStyle: {
+                        normal: { areaStyle: { type: 'default' }, color: '#00ce68' }
+                    },
+                    data: [600, 508, 720, 890, 1000]
+                }
+            ],
+            grid: {
+                show: true,
+                x: 50,
+                x2: 30,
+                y: 80,
+                height: 260
+            },
+            dataZoom: [//给x轴设置滚动条
+                {
+                    start: 0,//默认为0
+                    end: 100 - 1000 / 31,//默认为100
+                    type: 'slider',
+                    show: true,
+                    xAxisIndex: [0],
+                    handleSize: 0,//滑动条的 左右2个滑动条的大小
+                    height: 8,//组件高度
+                    left: 45, //左边的距离
+                    right: 50,//右边的距离
+                    bottom: 26,//右边的距离
+                    handleColor: '#ddd',//h滑动图标的颜色
+                    handleStyle: {
+                        borderColor: "#cacaca",
+                        borderWidth: "1",
+                        shadowBlur: 2,
+                        background: "#ddd",
+                        shadowColor: "#ddd",
+                    }
+                }]
+        };
+        oColumn.setOption(oColumnopt);
 
     </script>
 
